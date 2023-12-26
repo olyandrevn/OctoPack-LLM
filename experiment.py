@@ -15,7 +15,7 @@ import torch
 import zlib
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from evaluate import load
+import evaluate
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -50,7 +50,7 @@ class Experiment:
     def __init__(self, filelog, args : ExperimentArgs):
         self.args = args
         self.f_log = open(filelog, 'w')
-        self.pass_at_k = load("code_eval")
+        self.pass_at_k = evaluate.load("code_eval")
 
         self.setup()
 
