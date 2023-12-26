@@ -74,8 +74,9 @@ class Experiment:
         self.model.eval()
 
         self.samples = []
+        self.score_name = f"pass@{self.args.k}" 
         self.scores = {
-            f"pass@{self.args.k}": []
+            self.score_name: []
         }
 
     def generate_sequences(self, prompt):
@@ -110,12 +111,15 @@ class Experiment:
             generated_code = [self.get_code(seq) for seq in generated_sequences]
 
             score, _ = self.pass_at_k.compute(references=[item['test']], predictions=[generated_code], k=[self.args.k])
-            self.scores[f"pass@{self.args.k}"].append(score[f"pass@{self.args.k}"])
+            self.scores[self.score_name].append(score[self.score_name])
 
-        self.scores[f"pass@{self.args.k}"] = np.asarray(self.scores[f"pass@{self.args.k}"])
+        self.scores[self.score_name] = np.asarray(self.scores[self.score_name])
 
     def metric(self):
-        print(f"pass@{self.args.k} = {self.scores[f'pass@{self.args.k}'].mean()}")
+        self.f_log.write(f"{self.score_name} = {self.scores[self.score_name].mean()}")
+    
+    def end(self):
+        self.f_log.close()
 
 
 def parse_arguments(argv):
@@ -139,6 +143,7 @@ def main():
     experiment = Experiment(filelog=args.file, args=experiment_args)
     experiment.run()
     experiment.metric()
+    experiment.end()
 
 if __name__ == '__main__':
     args = parse_arguments(sys.argv[1:])
