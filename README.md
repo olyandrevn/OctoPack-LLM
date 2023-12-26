@@ -24,20 +24,23 @@ In this task, we invite you to get familiar with OctoPack and experiment a littl
 ## Install
 
 ```sh
-git clone
+git clone git@github.com:olyandrevn/Octopack-LLM.git
 ```
+OR
+
+Copy notebook in Google Colab and run all cells there(on GPU).
 
 ## Usage
 
 ```sh
-
+python3 experiment.py
 ```
-
 
 
 ## Run on default parameters
 
 ```sh
+python3 experiment.py
 ```
 
 ## Author
