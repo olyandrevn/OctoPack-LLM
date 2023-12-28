@@ -3,16 +3,12 @@ from datasets import load_dataset
 import logging
 logging.basicConfig(level='ERROR')
 
-import matplotlib.pyplot as plt
-from IPython.display import clear_output
 import argparse
 import numpy as np
-from pprint import pprint
+import pandas as pd
 import sys
-import csv
 import os
 import torch
-import zlib
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import evaluate
@@ -47,16 +43,20 @@ class ExperimentArgs:
         self.model_name = os.path.split(checkpoint)[1]
 
 class Experiment:
-    def __init__(self, filelog, args : ExperimentArgs):
+    def __init__(self, filelog, filetable, args : ExperimentArgs):
         self.args = args
-        self.f_log = open(filelog, 'w')
+        self.filelog = filelog
+        self.filetable = filetable
         self.pass_at_k = evaluate.load("code_eval")
+        self.score_name = f"pass@{self.args.k}" 
 
-        self.setup()
+        df = pd.DataFrame(columns=['text', self.score_name])
+        df.to_csv(self.filetable, mode='a', index=False)
 
     def setup(self):
-        self.f_log.write(f"using device: {device}\n")
-        self.f_log.write("Loading Model...\n\n")
+        with open(self.filelog, 'a') as f:
+            f.write(f"using device: {device}\n")
+            f.write("Loading Model...\n\n")
 
         self.dataset = load_dataset("bigcode/humanevalpack", "python")["test"]
         if self.args.N is None:
@@ -72,9 +72,9 @@ class Experiment:
             self.args.checkpoint,
             trust_remote_code=True).to(device)
         self.model.eval()
+        with open(self.filelog, 'a') as f:
+            f.write("Model loading is done!\n\n")
 
-        self.samples = []
-        self.score_name = f"pass@{self.args.k}" 
         self.scores = {
             self.score_name: []
         }
@@ -100,26 +100,32 @@ class Experiment:
         return code
 
     def run(self):
-        for i in range(self.args.N):
+        with open(self.filelog, 'a') as f:
+            f.write("Start experiment...\n\n")
+
+        for i in tqdm(range(self.args.N)):
             item = self.dataset[i]
             prompt = self.prompt_template.format(
                 system="You are a programming assistant",
                 query="Fix bugs in " + item['entry_point'] + "\n" + item['declaration'] + item['buggy_solution'])
 
             generated_sequences = self.generate_sequences(prompt)
-            self.samples.append(generated_sequences)
             generated_code = [self.get_code(seq) for seq in generated_sequences]
 
             score, _ = self.pass_at_k.compute(references=[item['test']], predictions=[generated_code], k=[self.args.k])
             self.scores[self.score_name].append(score[self.score_name])
 
-        self.scores[self.score_name] = np.asarray(self.scores[self.score_name])
+            data = {
+                'text': ["\n\n".join(generated_sequences)],
+                self.score_name: [score[self.score_name]],
+            }
+            df = pd.DataFrame(data)
+            df.to_csv(self.filetable, mode='a', header=False, index=False)
 
-    def metric(self):
-        self.f_log.write(f"{self.score_name} = {self.scores[self.score_name].mean()}")
-    
-    def end(self):
-        self.f_log.close()
+        self.scores[self.score_name] = np.asarray(self.scores[self.score_name])
+        with open(self.filelog, 'a') as f:
+            f.write(f"{self.score_name} = {self.scores[self.score_name].mean()}\n")
+            f.write("Experiment done!\n\n")
 
 
 def parse_arguments(argv):
@@ -130,7 +136,9 @@ def parse_arguments(argv):
     parser.add_argument('--temperature', type=float, default=0.2, help="The temperature parameter for generation, controlling randomness.")
     parser.add_argument('--top_p', type=float, default=0.95, help="The top-p parameter for generation, controlling diversity.")
     parser.add_argument('--checkpoint', type=str, default="smallcloudai/Refact-1_6B-fim", help="The name of the model, extracted from the checkpoint path.")
-    parser.add_argument('--file', type=str, default="exp-1.txt", help="The file name for logging.")
+    parser.add_argument('--filelog', type=str, default="exp-log-v1.txt", help="The file name for logging.")
+    parser.add_argument('--filetable', type=str, default="exp-table-v1.txt", help="The file name for logging.")
+
     return parser.parse_args(argv)
 
 def main():
@@ -140,10 +148,10 @@ def main():
                                      temperature=args.temperature, 
                                      top_p=args.top_p, 
                                      checkpoint=args.checkpoint)
-    experiment = Experiment(filelog=args.file, args=experiment_args)
+    experiment = Experiment(filelog=args.filelog, filetable=args.filetable, args=experiment_args)
+    experiment.setup()
     experiment.run()
-    experiment.metric()
-    experiment.end()
+
 
 if __name__ == '__main__':
     args = parse_arguments(sys.argv[1:])
