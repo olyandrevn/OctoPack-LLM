@@ -1,0 +1,10 @@
+using device: cuda
+Loading Model...
+
+Model loading is done!
+
+Start experiment...
+
+pass@1 = 0.23414634146341462
+Experiment done!
+
