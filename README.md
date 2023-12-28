@@ -24,7 +24,7 @@ In this task, we invite you to get familiar with OctoPack and experiment a littl
 ## Install
 
 ```sh
-git clone git@github.com:olyandrevn/Octopack-LLM.git
+git clone https://github.com/olyandrevn/OctoPack-LLM.git
 ```
 OR
 
