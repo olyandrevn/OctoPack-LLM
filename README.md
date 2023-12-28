@@ -28,20 +28,17 @@ git clone git@github.com:olyandrevn/Octopack-LLM.git
 ```
 OR
 
-Copy notebook in Google Colab and run all cells there(on GPU).
+Copy [notebook in Google Colab](https://colab.research.google.com/github/olyandrevn/OctoPack-LLM/blob/main/OctoPackExplorationTask.ipynb) and run all cells there(on GPU).
 
 ## Usage
 
 ```sh
 python3 experiment.py
 ```
+OR
 
+Copy [notebook in Google Colab](https://colab.research.google.com/github/olyandrevn/OctoPack-LLM/blob/main/OctoPackExplorationTask.ipynb) and run all cells there(on GPU).
 
-## Run on default parameters
-
-```sh
-python3 experiment.py
-```
 
 ## Author
 
