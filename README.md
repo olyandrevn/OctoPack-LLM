@@ -38,11 +38,3 @@ python3 experiment.py
 OR
 
 Copy [notebook in Google Colab](https://colab.research.google.com/github/olyandrevn/OctoPack-LLM/blob/main/OctoPackExplorationTask.ipynb) and run all cells there(on GPU).
-
-
-## Author
-
-👤 **Olga Kolomyttseva**
-
-* Github: [@olyandrevn](https://github.com/olyandrevn)
-* LinkedIn: [@olyandrevn](https://linkedin.com/in/olyandrevn)
